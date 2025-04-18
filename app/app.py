@@ -36,5 +36,13 @@ def get_weather_by_city(city):
 def get_all_weather():
     return jsonify(weather_logs), 200
 
+@app.route('/ping')
+def ping():
+    return "pong"
+
+@app.route('/status')
+def status():
+    return jsonify({"status": "OK"})
+
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)
