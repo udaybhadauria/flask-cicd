@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     stages {
-        stage('Clone Repo') {
+        stage('Clone') {
             steps {
                 git 'https://github.com/udaybhadauria/flask-cicd.git'
             }
@@ -10,18 +10,17 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                script {
-                    docker.build('flask-cicd-app')
-                }
+                sh 'docker build -t flask-cicd-app .'
             }
         }
 
-        stage('Run Docker Container') {
+        stage('Run Container') {
             steps {
-                script {
-                    sh 'docker rm -f flask-app || true'
-                    sh 'docker run -d -p 5000:5000 --name flask-app flask-cicd-app'
-                }
+                sh '''
+                docker stop flask-app || true
+                docker rm flask-app || true
+                docker run -d -p 5000:5000 --name flask-app flask-cicd-app
+                '''
             }
         }
     }
