@@ -31,20 +31,23 @@ pipeline {
 
     post {
         success {
-	    echo "Posting success message to Slack..."
-            sh '''
-            curl -X POST -H 'Content-type: application/json' \
-            --data '{"text":"✅ *Build SUCCESS*: Job ${JOB_NAME} #${BUILD_NUMBER} - <${BUILD_URL}|View Build>"}' \
-            $SLACK_WEBHOOK
-            '''
+            echo "Posting success message to Slack..."
+            script {
+                def msg = """{
+                  "text": "✅ *Build SUCCESS*: Job ${env.JOB_NAME} #${env.BUILD_NUMBER} - <${env.BUILD_URL}|View Build>"
+                }"""
+                sh "curl -X POST -H 'Content-type: application/json' --data '${msg}' ${env.SLACK_WEBHOOK}"
+            }
         }
+
         failure {
-	    echo "Posting failure message to Slack..."
-            sh '''
-            curl -X POST -H 'Content-type: application/json' \
-            --data '{"text":"❌ *Build FAILED*: Job ${JOB_NAME} #${BUILD_NUMBER} - <${BUILD_URL}|View Build>"}' \
-            $SLACK_WEBHOOK
-            '''
+            echo "Posting failure message to Slack..."
+            script {
+                def msg = """{
+                  "text": "❌ *Build FAILED*: Job ${env.JOB_NAME} #${env.BUILD_NUMBER} - <${env.BUILD_URL}|View Build>"
+                }"""
+                sh "curl -X POST -H 'Content-type: application/json' --data '${msg}' ${env.SLACK_WEBHOOK}"
+            }
         }
     }
 }
