@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    environment {
+        SLACK_WEBHOOK = credentials('slack-webhook') // Jenkins secret text with your Slack webhook URL
+    }
+
     stages {
         stage('Clone') {
             steps {
@@ -22,6 +26,25 @@ pipeline {
                 docker run -d -p 5000:5000 --name flask-app flask-cicd-app
                 '''
             }
+        }
+    }
+
+    post {
+        success {
+	    echo "Posting success message to Slack..."
+            sh '''
+            curl -X POST -H 'Content-type: application/json' \
+            --data '{"text":"✅ *Build SUCCESS*: Job ${JOB_NAME} #${BUILD_NUMBER} - <${BUILD_URL}|View Build>"}' \
+            $SLACK_WEBHOOK
+            '''
+        }
+        failure {
+	    echo "Posting failure message to Slack..."
+            sh '''
+            curl -X POST -H 'Content-type: application/json' \
+            --data '{"text":"❌ *Build FAILED*: Job ${JOB_NAME} #${BUILD_NUMBER} - <${BUILD_URL}|View Build>"}' \
+            $SLACK_WEBHOOK
+            '''
         }
     }
 }
