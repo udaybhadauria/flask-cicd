@@ -38,7 +38,7 @@ def get_all_weather():
 
 @app.route('/ping')
 def ping():
-    return "pong pong vikas"
+    return "pong pong vikas sharma"
 
 @app.route('/status')
 def status():
