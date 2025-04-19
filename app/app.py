@@ -42,7 +42,7 @@ def ping():
 
 @app.route('/status')
 def status():
-    return jsonify({"status": "OK"})
+    return jsonify({"status": "OK Good"})
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
