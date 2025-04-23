@@ -3,12 +3,35 @@ pipeline {
 
     environment {
         SLACK_WEBHOOK = credentials('slack-webhook') // Jenkins secret text with your Slack webhook URL
+        GITHUB_PAT = credentials('github-pat') // Add this secret in Jenkins for GitHub API access
     }
 
     stages {
         stage('Clone') {
             steps {
                 git 'https://github.com/udaybhadauria/flask-cicd.git'
+            }
+        }
+
+        stage('Fetch .env from GitHub') {
+            steps {
+                sh '''
+                echo "Fetching latest GitHub Actions artifact containing .env..."
+                
+                ARTIFACT_ID=$(curl -s -H "Authorization: token $GITHUB_PAT" \
+                  https://api.github.com/repos/udaybhadauria/flask-cicd/actions/artifacts \
+                  | jq '.artifacts[0].id')
+
+                echo "Artifact ID: $ARTIFACT_ID"
+
+                curl -L -H "Authorization: token $GITHUB_PAT" \
+                  -o env-artifact.zip \
+                  https://api.github.com/repos/udaybhadauria/flask-cicd/actions/artifacts/$ARTIFACT_ID/zip
+
+                unzip -o env-artifact.zip
+                mv .env /home/pi/flask-cicd/.env
+                chmod 600 /home/pi/flask-cicd/.env
+                '''
             }
         }
 
@@ -20,7 +43,6 @@ pipeline {
 
         stage('Run Unit Tests') {
             steps {
-                // Run test script inside Jenkins workspace (assumes generate_jwt_key.sh and run_tests.sh exist)
                 sh 'echo "Running API unit tests..."'
                 sh 'chmod +x app/run_tests.sh'
                 sh './app/run_tests.sh'
