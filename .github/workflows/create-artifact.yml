@@ -26,7 +26,7 @@ jobs:
 
       # Step 3: Upload the .env file as an artifact
       - name: Upload .env Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: env-artifact
           path: .env
