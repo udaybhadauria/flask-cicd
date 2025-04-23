@@ -14,8 +14,13 @@ if [ -z "$SLACK_WEBHOOK_URL" ]; then
     exit 1
 fi
 
-# Activate the virtual environment (optional)
-source /home/pi/flask-cicd/venv/bin/activate
+# Check if virtual environment is activated
+if [ -z "$VIRTUAL_ENV" ]; then
+    echo "Activating virtual environment..."
+    source /home/pi/flask-cicd/venv/bin/activate
+else
+    echo "Virtual environment already activated."
+fi
 
 # Paths
 PROJECT_DIR="/home/pi/flask-cicd"
@@ -27,16 +32,12 @@ TIME=$(date +"%H:%M:%S")
 METRIC_FILE="$RESULT_DIR/metrics_$TIMESTAMP.prom"
 SCHEDULE_FILE="$PROJECT_DIR/ui/static/test_schedule.json"
 
-# Ensure result directory exists
+# Ensure result directory exists and has write permission
 mkdir -p "$RESULT_DIR"
-
-# Check for write permission
 if [ ! -w "$RESULT_DIR" ]; then
-    echo "No write permission for the results directory."
+    echo "No write permission for the results directory: $RESULT_DIR"
     exit 1
 fi
-
-cd "$PROJECT_DIR"
 
 # Run unit tests
 TEST_OUTPUT=$(python3 -m unittest test_api 2>&1)
@@ -93,9 +94,6 @@ echo "Failed Test Cases: $FAILED_TEST_CASES"
 # SLACK NOTIFICATION SECTION
 #########################################
 
-#SLACK_WEBHOOK_URL="https://hooks.slack.com/services/Test/Test/Test"
-
-# Format last lines for Slack summary
 SUMMARY=$(echo "$TEST_OUTPUT" | tail -n 10 | sed 's/\\/\\\\/g' | sed 's/"/\\"/g')
 
 if [ "$STATUS" = "Passed" ]; then
@@ -122,7 +120,7 @@ echo "{\"last_run\": \"$CURRENT_TIME\", \"next_run\": \"$NEXT_TIME\"}" > "$SCHED
 
 if [ "$FAIL_COUNT" -gt 0 ]; then
     echo "Some tests failed."
-    exit 1  # Force non-zero exit on failure
+    exit 1
 else
     echo "All tests passed."
     exit 0
