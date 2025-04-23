@@ -63,26 +63,22 @@ pipeline {
 
     post {
         success {
-            node('any') { // Specify a label, e.g., 'any' or 'master'
-                echo "Posting success message to Slack..."
-                script {
-                    def msg = """{
-                      "text": "✅ *Build SUCCESS*: Job ${env.JOB_NAME} #${env.BUILD_NUMBER} - <${env.BUILD_URL}|View Build>"
-                    }"""
-                    sh "curl -X POST -H 'Content-type: application/json' --data '${msg}' ${env.SLACK_WEBHOOK}"
-                }
+            echo "Posting success message to Slack..."
+            script {
+                def msg = """{
+                  "text": "✅ *Build SUCCESS*: Job ${env.JOB_NAME} #${env.BUILD_NUMBER} - <${env.BUILD_URL}|View Build>"
+                }"""
+                sh "curl -X POST -H 'Content-type: application/json' --data '${msg}' ${env.SLACK_WEBHOOK}"
             }
         }
 
         failure {
-            node('any') { // Specify a label, e.g., 'any' or 'master'
-                echo "Posting failure message to Slack..."
-                script {
-                    def msg = """{
-                      "text": "❌ *Build FAILED*: Job ${env.JOB_NAME} #${env.BUILD_NUMBER} - <${env.BUILD_URL}|View Build>"
-                    }"""
-                    sh "curl -X POST -H 'Content-type: application/json' --data '${msg}' ${env.SLACK_WEBHOOK}"
-                }
+            echo "Posting failure message to Slack..."
+            script {
+                def msg = """{
+                  "text": "❌ *Build FAILED*: Job ${env.JOB_NAME} #${env.BUILD_NUMBER} - <${env.BUILD_URL}|View Build>"
+                }"""
+                sh "curl -X POST -H 'Content-type: application/json' --data '${msg}' ${env.SLACK_WEBHOOK}"
             }
         }
     }
