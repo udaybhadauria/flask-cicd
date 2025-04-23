@@ -2,16 +2,18 @@ FROM python:3.10-slim
 
 WORKDIR /app
 
-# Install dependencies
+# Install Python dependencies
 COPY app/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the app code and certs
+# Copy application code and files
 COPY app/ .
-COPY .env /app/.env
 COPY run_tests.sh /app/run_tests.sh
 COPY cert.pem /app/cert.pem
 COPY key.pem /app/key.pem
 
-# Start the application
+# Make test script executable
+RUN chmod +x /app/run_tests.sh
+
+# Run the Flask app
 CMD ["python", "app.py"]

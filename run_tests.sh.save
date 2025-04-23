@@ -1,0 +1,129 @@
+#!/bin/bash
+
+# Load environment variables from .env file
+set -o allexport
+source /app/.env
+#source /home/pi/flask-cicd/.env
+set +o allexport
+
+# Use environment variables passed by Jenkins directly
+echo "Webhook URL is: $SLACK_WEBHOOK_URL"
+
+if [ -z "$SLACK_WEBHOOK_URL" ]; then
+    echo "SLACK_WEBHOOK_URL not set. Please check your token in Jenkins system."
+    exit 1
+fi
+
+# Activate the virtual environment (optional)
+source /home/pi/flask-cicd/venv/bin/activate
+
+# Paths
+PROJECT_DIR="/home/pi/flask-cicd"
+RESULT_DIR="$PROJECT_DIR/test_results"
+RESULT_FILE="$RESULT_DIR/results.csv"
+TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
+DATE=$(date +"%Y-%m-%d")
+TIME=$(date +"%H:%M:%S")
+METRIC_FILE="$RESULT_DIR/metrics_$TIMESTAMP.prom"
+SCHEDULE_FILE="$PROJECT_DIR/ui/static/test_schedule.json"
+
+# Ensure result directory exists
+mkdir -p "$RESULT_DIR"
+
+# Check for write permission
+if [ ! -w "$RESULT_DIR" ]; then
+    echo "No write permission for the results directory."
+    exit 1
+fi
+
+cd "$PROJECT_DIR"
+
+# Run unit tests
+TEST_OUTPUT=$(python3 -m unittest test_api 2>&1)
+
+# Output raw result (optional)
+echo "Raw Test Output:"
+echo "$TEST_OUTPUT"
+
+# Parse results
+FAIL_COUNT=$(echo "$TEST_OUTPUT" | grep -o 'FAIL' | wc -l)
+TOTAL_TESTS=$(echo "$TEST_OUTPUT" | grep -o 'Ran [0-9]* tests' | grep -o '[0-9]*')
+PASS_COUNT=$((TOTAL_TESTS - FAIL_COUNT))
+FAILED_TESTS=$(echo "$TEST_OUTPUT" | grep 'FAIL:' | awk -F ' ' '{print $2}' | paste -sd ", ")
+
+if [ "$FAIL_COUNT" -eq 0 ]; then
+    STATUS="Passed"
+    FAILED_TEST_CASES="No failed tests"
+else
+    STATUS="Failed"
+    FAILED_TEST_CASES="$FAILED_TESTS"
+fi
+
+# Write to CSV
+if [ ! -f "$RESULT_FILE" ]; then
+    echo "Date,Time,Total Tests,Passed,Failed,Status,Failed Test Cases" > "$RESULT_FILE"
+fi
+
+echo "$DATE,$TIME,$TOTAL_TESTS,$PASS_COUNT,$FAIL_COUNT,$STATUS,$FAILED_TEST_CASES" >> "$RESULT_FILE"
+
+# Write Prometheus metrics
+cat <<EOF > "$METRIC_FILE"
+# HELP unit_test_passed Total passed unit tests
+# TYPE unit_test_passed gauge
+unit_test_passed $PASS_COUNT
+
+# HELP unit_test_failed Total failed unit tests
+# TYPE unit_test_failed gauge
+unit_test_failed $FAIL_COUNT
+
+# HELP failed_tests Names of the failed test cases
+# TYPE failed_tests gauge
+failed_tests "$FAILED_TEST_CASES"
+EOF
+
+# Console output
+echo "Test results saved to: $RESULT_FILE"
+echo "Metrics saved to: $METRIC_FILE"
+echo "Total Tests: $TOTAL_TESTS"
+echo "Total Passed Tests: $PASS_COUNT"
+echo "Total Failed Tests: $FAIL_COUNT"
+echo "Failed Test Cases: $FAILED_TEST_CASES"
+
+#########################################
+# SLACK NOTIFICATION SECTION
+#########################################
+
+#SLACK_WEBHOOK_URL="https://hooks.slack.com/services/Test/Test/Test"
+
+# Format last lines for Slack summary
+SUMMARY=$(echo "$TEST_OUTPUT" | tail -n 10 | sed 's/\\/\\\\/g' | sed 's/"/\\"/g')
+
+if [ "$STATUS" = "Passed" ]; then
+    SLACK_MESSAGE="✅ *Test Run Passed* at $DATE $TIME\nTotal: $TOTAL_TESTS, Passed: $PASS_COUNT"
+else
+    SLACK_MESSAGE="❌ *Test Run FAILED* at $DATE $TIME\nTotal: $TOTAL_TESTS, Failed: $FAIL_COUNT\n*Failed Cases:* $FAILED_TEST_CASES\n\`\`\`$SUMMARY\`\`\`"
+fi
+
+curl -X POST -H 'Content-type: application/json' \
+  --data "{
+    \"text\": \"$SLACK_MESSAGE\"
+  }" $SLACK_WEBHOOK_URL
+
+#########################################
+# NEXT RUN TIME CALCULATION FOR UI
+#########################################
+
+TIMER_FILE="/etc/systemd/system/unit_test.timer"
+INTERVAL=$(grep -oP 'OnUnitActiveSec=\K[^\n]+' "$TIMER_FILE" | sed 's/[^0-9]*//g')  # e.g., 43200 for 12h
+CURRENT_TIME=$(date +"%Y-%m-%d %H:%M:%S")
+NEXT_TIME=$(date -d "+${INTERVAL} seconds" +"%Y-%m-%d %H:%M:%S")
+
+echo "{\"last_run\": \"$CURRENT_TIME\", \"next_run\": \"$NEXT_TIME\"}" > "$SCHEDULE_FILE"
+
+if [ "$FAIL_COUNT" -gt 0 ]; then
+    echo "Some tests failed."
+    exit 1  # Force non-zero exit on failure
+else
+    echo "All tests passed."
+    exit 0
+fi
