@@ -3,7 +3,7 @@ name: Trigger Jenkins Build
 on:
   push:
     branches:
-      - master  # Trigger this workflow on push to master
+      - master
 
 jobs:
   trigger-jenkins:
@@ -15,6 +15,12 @@ jobs:
 
       - name: Set up .env file from GitHub Secret
         run: echo "${{ secrets.MY_ENV_FILE }}" > .env
+
+      - name: Upload .env as Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: envfile
+          path: .env
 
       - name: Trigger Jenkins Pipeline
         run: |
