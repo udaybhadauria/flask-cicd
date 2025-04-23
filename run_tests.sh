@@ -110,12 +110,12 @@ curl -X POST -H 'Content-type: application/json' \
 # NEXT RUN TIME CALCULATION FOR UI
 #########################################
 
-TIMER_FILE="/etc/systemd/system/unit_test.timer"
-INTERVAL=$(grep -oP 'OnUnitActiveSec=\K[^\n]+' "$TIMER_FILE" | sed 's/[^0-9]*//g')  # e.g., 43200 for 12h
-CURRENT_TIME=$(date +"%Y-%m-%d %H:%M:%S")
-NEXT_TIME=$(date -d "+${INTERVAL} seconds" +"%Y-%m-%d %H:%M:%S")
+#TIMER_FILE="/etc/systemd/system/unit_test.timer"
+#INTERVAL=$(grep -oP 'OnUnitActiveSec=\K[^\n]+' "$TIMER_FILE" | sed 's/[^0-9]*//g')  # e.g., 43200 for 12h
+#CURRENT_TIME=$(date +"%Y-%m-%d %H:%M:%S")
+#NEXT_TIME=$(date -d "+${INTERVAL} seconds" +"%Y-%m-%d %H:%M:%S")
 
-echo "{\"last_run\": \"$CURRENT_TIME\", \"next_run\": \"$NEXT_TIME\"}" > "$SCHEDULE_FILE"
+#echo "{\"last_run\": \"$CURRENT_TIME\", \"next_run\": \"$NEXT_TIME\"}" > "$SCHEDULE_FILE"
 
 if [ "$FAIL_COUNT" -gt 0 ]; then
     echo "Some tests failed."
