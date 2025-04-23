@@ -14,16 +14,28 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t flask-cicd-app .'
+                sh 'docker build -t flask-cicd-app .' //Build the Flask App Docker Image
+            }
+        }
+	
+	stage('Run Unit Tests') {
+            steps {
+                // Run test script inside Jenkins workspace (assumes generate_jwt_key.sh and run_tests.sh exist)
+                sh '''
+                    echo "Running API unit tests..."
+                    chmod +x run_tests.sh
+                    sh 'bash run_tests.sh'
+                '''
             }
         }
 
         stage('Run Container') {
             steps {
                 sh '''
-                docker stop flask-app || true
-                docker rm flask-app || true
-                docker run -d -p 5000:5000 --name flask-app flask-cicd-app
+                //docker stop flask-app || true
+                //docker rm flask-app || true
+                //docker run -d -p 5000:5000 --name flask-app flask-cicd-app
+		sudo systemctl restart flask-app //Restart Docker Container as It's being run already using systemctl
                 '''
             }
         }
