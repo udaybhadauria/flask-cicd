@@ -1,7 +1,5 @@
 #!/bin/bash
 
-#Test Jenkins
-
 # Load environment variables from .env file
 set -o allexport
 source /home/pi/flask-cicd/.env
