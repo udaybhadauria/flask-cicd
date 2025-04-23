@@ -20,7 +20,7 @@ jobs:
         run: echo "SLACK_WEBHOOK_URL=${{ secrets.SLACK_WEBHOOK_URL }}" >> $GITHUB_ENV
 
       - name: Upload .env as Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v2  # ✅ Changed from v3 to v2
         with:
           name: envfile
           path: .env
