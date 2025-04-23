@@ -115,3 +115,11 @@ CURRENT_TIME=$(date +"%Y-%m-%d %H:%M:%S")
 NEXT_TIME=$(date -d "+${INTERVAL} seconds" +"%Y-%m-%d %H:%M:%S")
 
 echo "{\"last_run\": \"$CURRENT_TIME\", \"next_run\": \"$NEXT_TIME\"}" > "$SCHEDULE_FILE"
+
+if [ "$FAIL_COUNT" -gt 0 ]; then
+    echo "Some tests failed."
+    exit 1  # Force non-zero exit on failure
+else
+    echo "All tests passed."
+    exit 0
+fi

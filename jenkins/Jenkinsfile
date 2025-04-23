@@ -23,8 +23,8 @@ pipeline {
                 // Run test script inside Jenkins workspace (assumes generate_jwt_key.sh and run_tests.sh exist)
                 sh '''
                     echo "Running API unit tests..."
-                    sh 'chmod +x run_tests.sh'
-                    sh './run_tests.sh'
+                    sh 'chmod +x app/run_tests.sh'
+                    sh './app/run_tests.sh'
                 '''
             }
         }

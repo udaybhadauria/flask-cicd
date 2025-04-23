@@ -8,6 +8,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the app code and certs
 COPY app/ .
+COPY run_tests.sh /app/run_tests.sh
 COPY cert.pem /app/cert.pem
 COPY key.pem /app/key.pem
 
