@@ -2,8 +2,8 @@ pipeline {
     agent any
 
     environment {
-        SLACK_WEBHOOK = credentials('slack-webhook') // Jenkins secret text with your Slack webhook URL
-        GITHUB_PAT = credentials('github-pat') // Add this secret in Jenkins for GitHub API access
+        SLACK_WEBHOOK = credentials('slack-webhook') // Slack webhook URL from Jenkins credentials
+        GITHUB_PAT = credentials('github-pat') // GitHub Personal Access Token from Jenkins credentials
     }
 
     stages {
@@ -52,9 +52,6 @@ pipeline {
         stage('Run Container') {
             steps {
                 sh '''
-                #docker stop flask-app || true
-                #docker rm flask-app || true
-                #docker run -d -p 5000:5000 --name flask-app flask-cicd-app
                 sudo systemctl restart flask-app // Restart Docker Container as It's being run already using systemctl
                 '''
             }
