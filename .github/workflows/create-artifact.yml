@@ -1,0 +1,29 @@
+name: Create and Upload .env Artifact
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch: # Allows manually triggering the workflow
+
+jobs:
+  create-artifact:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the repository
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      # Step 2: Create a .env file using secrets
+      - name: Generate .env File
+        run: |
+          echo "SLACK_WEBHOOK_URL=${{ secrets.SLACK_WEBHOOK_URL }}" > .env
+          echo "JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}" >> .env
+
+      # Step 3: Upload the .env file as an artifact
+      - name: Upload .env Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: env-artifact
+          path: .env
