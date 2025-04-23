@@ -35,7 +35,7 @@ pipeline {
             steps {
                 sh 'echo "Running API unit tests..."'
                 sh 'chmod +x app/run_tests.sh'
-                sh './app/run_tests.sh'
+		SLACK_WEBHOOK_URL="${SLACK_WEBHOOK}" ./app/run_tests.sh
             }
         }
 

@@ -2,6 +2,7 @@
 
 # Load environment variables from .env file
 #set -o allexport
+#source /app/.env
 #source /home/pi/flask-cicd/.env
 #set +o allexport
 
