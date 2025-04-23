@@ -100,5 +100,5 @@ def status():
     return jsonify({"status": "OK Good"})
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, ssl_context=('/home/pi/flask-cicd/cert.pem', '/home/pi/flask-cicd/key.pem'), debug=True)
-    #app.run(host='0.0.0.0', port=5000, ssl_context=('cert.pem', 'key.pem'), debug=True)
+    app.run(host='0.0.0.0', port=5876, ssl_context=('/home/pi/flask-cicd/cert.pem', '/home/pi/flask-cicd/key.pem'), debug=True)
+    #app.run(host='0.0.0.0', port=5876, ssl_context=('cert.pem', 'key.pem'), debug=True)
