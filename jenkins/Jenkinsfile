@@ -63,7 +63,7 @@ pipeline {
 
     post {
         success {
-            node {
+            node('any') { // Specify a label, e.g., 'any' or 'master'
                 echo "Posting success message to Slack..."
                 script {
                     def msg = """{
@@ -75,7 +75,7 @@ pipeline {
         }
 
         failure {
-            node {
+            node('any') { // Specify a label, e.g., 'any' or 'master'
                 echo "Posting failure message to Slack..."
                 script {
                     def msg = """{
