@@ -2,8 +2,7 @@ pipeline {
     agent any
 
     environment {
-        SLACK_WEBHOOK = credentials('slack-webhook') // Slack webhook URL from Jenkins credentials
-        GITHUB_PAT = credentials('github-pat') // GitHub Personal Access Token from Jenkins credentials
+        GITHUB_PAT = credentials('github-pat') // GitHub Personal Access Token
     }
 
     stages {
@@ -18,13 +17,18 @@ pipeline {
                 sh '''
                 echo "Fetching latest GitHub Actions artifact containing .env..."
                 
-                ARTIFACT_ID=$(curl -s -H "Authorization: token $GITHUB_PAT" \
+                ARTIFACT_ID=$(curl -s -H "Authorization: token ${GITHUB_PAT}" \
                   https://api.github.com/repos/udaybhadauria/flask-cicd/actions/artifacts \
                   | jq '.artifacts[0].id')
 
                 echo "Artifact ID: $ARTIFACT_ID"
 
-                curl -L -H "Authorization: token $GITHUB_PAT" \
+                if [ "$ARTIFACT_ID" = "null" ] || [ -z "$ARTIFACT_ID" ]; then
+                    echo "No artifacts found. Exiting..."
+                    exit 1
+                fi
+
+                curl -L -H "Authorization: token ${GITHUB_PAT}" \
                   -o env-artifact.zip \
                   https://api.github.com/repos/udaybhadauria/flask-cicd/actions/artifacts/$ARTIFACT_ID/zip
 
@@ -37,7 +41,7 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t flask-cicd-app .' // Build the Flask App Docker Image
+                sh 'docker build -t flask-cicd-app .' // Build the Docker image
             }
         }
 
@@ -52,7 +56,7 @@ pipeline {
         stage('Run Container') {
             steps {
                 sh '''
-                sudo systemctl restart flask-app // Restart Docker Container as It's being run already using systemctl
+                sudo systemctl restart flask-app // Restart the container using systemctl
                 '''
             }
         }
@@ -60,22 +64,22 @@ pipeline {
 
     post {
         success {
-            echo "Posting success message to Slack..."
-            script {
-                def msg = """{
-                  "text": "✅ *Build SUCCESS*: Job ${env.JOB_NAME} #${env.BUILD_NUMBER} - <${env.BUILD_URL}|View Build>"
-                }"""
-                sh "curl -X POST -H 'Content-type: application/json' --data '${msg}' ${env.SLACK_WEBHOOK}"
+            withCredentials([string(credentialsId: 'slack-webhook', variable: 'SLACK_WEBHOOK')]) {
+                sh '''
+                curl -X POST -H "Content-type: application/json" --data '{
+                    "text": "✅ *Build SUCCESS*: Job ${env.JOB_NAME} #${env.BUILD_NUMBER} - <${env.BUILD_URL}|View Build>"
+                }' $SLACK_WEBHOOK
+                '''
             }
         }
 
         failure {
-            echo "Posting failure message to Slack..."
-            script {
-                def msg = """{
-                  "text": "❌ *Build FAILED*: Job ${env.JOB_NAME} #${env.BUILD_NUMBER} - <${env.BUILD_URL}|View Build>"
-                }"""
-                sh "curl -X POST -H 'Content-type: application/json' --data '${msg}' ${env.SLACK_WEBHOOK}"
+            withCredentials([string(credentialsId: 'slack-webhook', variable: 'SLACK_WEBHOOK')]) {
+                sh '''
+                curl -X POST -H "Content-type: application/json" --data '{
+                    "text": "❌ *Build FAILED*: Job ${env.JOB_NAME} #${env.BUILD_NUMBER} - <${env.BUILD_URL}|View Build>"
+                }' $SLACK_WEBHOOK
+                '''
             }
         }
     }
