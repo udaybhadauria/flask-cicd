@@ -32,17 +32,15 @@ pipeline {
         }
 
         stage('Run Unit Tests') {
-            steps {
-                script {
-                    sh '''
-                        echo "Running API unit tests..."
-                        chmod +x app/run_tests.sh
-                        export SLACK_WEBHOOK_URL="$SLACK_WEBHOOK"
-                        ./app/run_tests.sh
-                    '''
-                }
-            }
-        }
+	    steps {
+        	sh '''
+            	     docker run --rm \
+                     -v /home/pi/flask-cicd/test_results:/app/test_results \
+                     -e SLACK_WEBHOOK_URL="$SLACK_WEBHOOK" \
+                     flask-cicd-app bash run_tests.sh
+	        '''
+	    }
+	}
 
         stage('Run Container') {
             steps {

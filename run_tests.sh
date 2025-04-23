@@ -14,12 +14,11 @@ if [ -z "$SLACK_WEBHOOK_URL" ]; then
     exit 1
 fi
 
-# Check if virtual environment is activated
-if [ -z "$VIRTUAL_ENV" ]; then
+if [ -z "$VIRTUAL_ENV" ] && [ ! -f "/.dockerenv" ]; then
     echo "Activating virtual environment..."
     source /home/pi/flask-cicd/venv/bin/activate
 else
-    echo "Virtual environment already activated."
+    echo "Running inside Docker or virtual environment already activated."
 fi
 
 # Paths
