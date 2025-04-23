@@ -12,11 +12,13 @@ pipeline {
             }
         }
 
+        // Commented out the "Fetch .env from GitHub" stage
+        /*
         stage('Fetch .env from GitHub') {
             steps {
                 sh '''
                 echo "Fetching latest GitHub Actions artifact containing .env..."
-                
+
                 ARTIFACT_ID=$(curl -s -H "Authorization: token ${GITHUB_PAT}" \
                   https://api.github.com/repos/udaybhadauria/flask-cicd/actions/artifacts \
                   | jq '.artifacts[0].id')
@@ -38,6 +40,7 @@ pipeline {
                 '''
             }
         }
+        */
 
         stage('Build Docker Image') {
             steps {
