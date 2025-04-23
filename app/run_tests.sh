@@ -1,12 +1,16 @@
 #!/bin/bash
 
 # Load environment variables from .env file
-set -o allexport
-source /home/pi/flask-cicd/.env
-set +o allexport
+#set -o allexport
+#source /app/.env
+#source /home/pi/flask-cicd/.env
+#set +o allexport
+
+# Use environment variables passed by Jenkins directly
+echo "Webhook URL is: $SLACK_WEBHOOK_URL"
 
 if [ -z "$SLACK_WEBHOOK_URL" ]; then
-    echo "SLACK_WEBHOOK_URL not set. Please check your .env file."
+    echo "SLACK_WEBHOOK_URL not set. Please check your token in Jenkins system."
     exit 1
 fi
 
