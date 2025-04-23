@@ -44,9 +44,18 @@ pipeline {
 
         stage('Run Container') {
             steps {
-		sh '''#!/bin/bash
+		sh '''
+		     #!/bin/bash
+		     echo "🧹 Cleaning up old container and port..."
 		     docker stop flask-app || true
 		     docker rm flask-app || true
+		     
+		     if lsof -i:5000; then
+        		echo "⚠️ Port 5000 is in use. Killing process..."
+        		fuser -k 5000/tcp || true
+    		     fi
+		     
+		     echo "🚀 Starting new container..."
 		     docker run -d -p 5000:5000 --name flask-app flask-cicd-app
 		'''
             }
