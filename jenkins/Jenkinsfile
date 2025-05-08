@@ -69,7 +69,7 @@ JWT_SECRET_KEY=${JWT_SECRET_KEY}
                 def seconds = durationSec % 60
 
                 def summary = """{
-"text": "✅ *Build SUCCESS*: Job ${env.JOB_NAME} #${env.BUILD_NUMBER} - <${env.BUILD_URL}|View Build>\\n*Duration:* ${minutes}m ${seconds}s"
+"text": "✅ *Projetc: Flask-CICD; Build SUCCESS*: Job ${env.JOB_NAME} #${env.BUILD_NUMBER} - <${env.BUILD_URL}|View Build>\\n*Duration:* ${minutes}m ${seconds}s"
 }"""
 
                 sh "curl -X POST -H \"Content-type: application/json\" --data '${summary}' \$SLACK_WEBHOOK"
@@ -83,7 +83,7 @@ JWT_SECRET_KEY=${JWT_SECRET_KEY}
                 def seconds = durationSec % 60
 
                 def summary = """{
-"text": "❌ *Build FAILED*: Job ${env.JOB_NAME} #${env.BUILD_NUMBER} - <${env.BUILD_URL}|View Build>\\n*Duration:* ${minutes}m ${seconds}s"
+"text": "❌ *Projetc: Flask-CICD; Build FAILED*: Job ${env.JOB_NAME} #${env.BUILD_NUMBER} - <${env.BUILD_URL}|View Build>\\n*Duration:* ${minutes}m ${seconds}s"
 }"""
 
                 sh "curl -X POST -H \"Content-type: application/json\" --data '${summary}' \$SLACK_WEBHOOK"
