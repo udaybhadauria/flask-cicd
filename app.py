@@ -93,7 +93,7 @@ def get_all_weather():
 
 @app.route('/ping')
 def ping():
-    return "pong pong ding dong"
+    return "ping pong ding dong"
 
 @app.route('/status')
 def status():
